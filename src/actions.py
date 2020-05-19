@@ -39,9 +39,14 @@ import pychromecast
 import spotipy
 import pprint
 import yaml
+import socket
 
 ROOT_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 USER_PATH = os.path.realpath(os.path.join(__file__, '..', '..','..'))
+
+
+updrequests = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+
 
 
 with open('{}/src/config.yaml'.format(ROOT_PATH),'r', encoding='utf8') as conf:
@@ -1710,6 +1715,62 @@ def on_ir_receive(pinNo, bouncetime=150):
         return None
 
 #-----------------------End of functions for IR code--------------------------
+
+
+
+#----------------------Start of UDP PLC Control Functions----------------------
+# PLCWrite, GVL_OpenRemote.LightSignalToggle[11], bool, True
+
+# PLCWrite, GVL_OpenRemote.DimmerSignalToggle[2], bool, True
+# PLCWrite, GVL_OpenRemote.DimmerValue[3], uint, ${param}
+
+# PLCWrite, GVL_OpenRemote.LightSignal[11], bool, true/false
+
+def UPD_control(query,index):
+    global hexcolour,bright,devorder
+    try:
+
+  # luci  -> Accendi, spegni, luminosità
+  # Rollo -> alza, abbassa, chiudi, apri
+
+   
+          if 'dimmer' in configuration['UDP_PLC_Control']['Id'][index].lower():
+            if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
+                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint, 100" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+                say('Turning on ' + configuration['UDP_PLC_Control']['Name'][index])
+            if custom_action_keyword['Dict']['Off'] in query:
+                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint, 0" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+                say('Turning off ' + configuration['UDP_PLC_Control']['Name'][index] ) 
+          else:
+            if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
+                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", bool, True" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+                say('Turning on ' + configuration['UDP_PLC_Control']['Name'][index] )
+            if custom_action_keyword['Dict']['Off'] in query:
+                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", bool, Flase" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+                say('Turning off ' + configuration['UDP_PLC_Control']['Name'][index] )
+  
+          if custom_action_keyword['Dict']['Brightness'] in query:
+              if 'dimmer' in configuration['UDP_PLC_Control']['Id'][index].lower():
+                  if 'hundred' in query or 'hundred'.lower() in query or custom_action_keyword['Dict']['Maximum'] in query:
+                      bright=str(100)
+                  elif 'zero' in query or custom_action_keyword['Dict']['Minimum'] in query:
+                      bright=str(0)
+                  else:
+                      bright=re.findall('\d+', query)
+                      bright=bright[0]
+                  updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint," + str(bright) , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+                  say('Setting ' + configuration['UDP_PLC_Control']['Name'][index] + ' brightness to ' + str(bright) + ' percent.')
+
+
+
+    except (requests.exceptions.ConnectionError,TypeError) as errors:
+        if str(errors)=="'NoneType' object is not iterable":
+            print("Type Error")
+        else:
+            say("UPD do PLC control Error" + str(errors))
+#------------------------End of UDP PLC Control Functions----------------------
+
+
 
 #Send voicenote to phone
 def voicenote(audiofile):

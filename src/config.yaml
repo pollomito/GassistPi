@@ -271,3 +271,29 @@ Wakewords:
 
 YouTube:
   YouTube_Control: 'Enabled'
+
+
+# UPD Control declarations
+UDP_PLC_Control:
+  # Set this to 'Enabled' to control PLC trought UDP command
+  UDP_Control: 'Enabled'
+  Server_IP:
+    # If you are running the server on the Pi itself, then change the ip to 'localhost'
+    - '192.168.1.201'
+  Server_port:
+    - '55005'
+  Devices:
+    #The number of names and number of ids should be equal
+    #List the device names that you want to control
+    Name:
+      - 'cucina'
+      - 'tavolo'
+      - 'sala'
+      - 'scale'
+    #Assign the device ids in the same order as the devices listed above
+    Id:
+      - 'PRG_Home.fbLights[7].bIntState'
+      - 'PRG_Home.fbDimmer[1].nForceVal'
+      - 'PRG_Home.fbDimmer[2].nForceVal' 
+      - 'PRG_Home.fbLights[21].bIntState'
+
