@@ -680,6 +680,14 @@ class Myassistant():
             else:
                 say("Number of devices and the number of ids given in config file do not match")
 
+        if configuration['UDP_PLC_Control']['UDP_Control']=='Enabled':
+            for i in range(0,len(configuration['UDP_PLC_Control']['Devices']['Name'])):
+                  if str(configuration['UDP_PLC_Control']['Devices']['Name'][i]).lower() in str(usrcmd).lower():
+                        self.assistant.stop_conversation()
+                        UPD_control(str(usrcmd).lower(),i)
+                        break
+
+
         if (custom_action_keyword['Keywords']['Magic_mirror'][0]).lower() in str(usrcmd).lower():
             self.assistant.stop_conversation()
             try:
