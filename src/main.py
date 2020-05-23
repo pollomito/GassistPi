@@ -97,6 +97,7 @@ from actions import translanguage
 from actions import language
 from actions import voicenote
 from actions import langlist
+from actions import UPD_control
 from audiorecorder import record_to_file
 
 try:
@@ -189,7 +190,7 @@ class Myassistant():
         self.assistant=None
         self.sensitivity = [0.5]*len(models)
         self.callbacks = [self.detected]*len(models)
-        self.detector = snowboydecoder.HotwordDetector(models, sensitivity=self.sensitivity)
+        self.detector = snowboydecoder.HotwordDetector(models, sensitivity=self.sensitivity, audio_gain=1.0)
         self.mutestatus=False
         self.interpreter=False
         self.interpconvcounter=0

@@ -96,7 +96,7 @@ Pushbullet:
   Pushbullet_Control: 'Disabled'
 
 #API Key for YouTube and Kickstarter Search Engine
-Google_cloud_api_key: "ENTER-YOUR-GOOGLE-CLOUD-API-KEY-HERE"
+Google_cloud_api_key: "AIzaSyD99WRJ7kVUcAZTwPDyDp2U5IXwOYo8lrY"
 
 #GPIOS used in the project. Feel free to change in case.
 Gpios:
@@ -261,13 +261,16 @@ TextToSpeech:
 
 #Custom wakeword On/Off.
 #To enable custom wakeword, change status to Enabled and restart the assistant.
+#    - '/home/pi/GassistPi/src/resources/snowboy.umdl'
+#    - '/home/pi/GassistPi/src/resources/alexa.umdl'
+#    - '/home/pi/GassistPi/src/resources/Pluto.umdl'
+
 Wakewords:
   Ok_Google: 'Enabled'
   Custom_Wakeword: 'Enabled'
   Custom_wakeword_models:
     - '/home/pi/GassistPi/src/resources/alexa.umdl'
-    - '/home/pi/GassistPi/src/resources/snowboy.umdl'
-    - '/home/pi/GassistPi/src/resources/Pluto.umdl'
+    - '/home/pi/GassistPi/src/resources/casa.pmdl'
 
 YouTube:
   YouTube_Control: 'Enabled'
@@ -281,7 +284,7 @@ UDP_PLC_Control:
     # If you are running the server on the Pi itself, then change the ip to 'localhost'
     - '192.168.1.201'
   Server_port:
-    - '55005'
+    - 55005
   Devices:
     #The number of names and number of ids should be equal
     #List the device names that you want to control
@@ -289,11 +292,26 @@ UDP_PLC_Control:
       - 'cucina'
       - 'tavolo'
       - 'sala'
+      - 'divano'
       - 'scale'
+      - 'gabinetto'
+      - 'cesso'
+      - 'TV'
+      - 'ufficio'
+      - 'atrio'
+      
+      
     #Assign the device ids in the same order as the devices listed above
     Id:
-      - 'PRG_Home.fbLights[7].bIntState'
-      - 'PRG_Home.fbDimmer[1].nForceVal'
-      - 'PRG_Home.fbDimmer[2].nForceVal' 
-      - 'PRG_Home.fbLights[21].bIntState'
+      - 'PRG_Home.fbLights[7].bIntState'   # cucina
+      - 'GVL_OpenRemote.DimmerValue[1]'    # tavolo
+      - 'GVL_OpenRemote.DimmerValue[2]'    # sala
+      - 'GVL_OpenRemote.DimmerValue[2]'    # divano = sala
+      - 'PRG_Home.fbLights[21].bIntState'  # scale
+      - 'PRG_Home.fbLights[9].bIntState'   # gabinetto
+      - 'PRG_Home.fbLights[9].bIntState'   # cesso = gabinetto
+      - 'GVL_OpenRemote.DimmerValue[3]'    # TV
+      - 'PRG_Home.fbLights[12].bIntState'  # ufficio
+      - 'PRG_Home.fbLights[8].bIntState'   # atrio
+      
 

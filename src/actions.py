@@ -45,8 +45,6 @@ ROOT_PATH = os.path.realpath(os.path.join(__file__, '..', '..'))
 USER_PATH = os.path.realpath(os.path.join(__file__, '..', '..','..'))
 
 
-updrequests = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-
 
 
 with open('{}/src/config.yaml'.format(ROOT_PATH),'r', encoding='utf8') as conf:
@@ -54,6 +52,11 @@ with open('{}/src/config.yaml'.format(ROOT_PATH),'r', encoding='utf8') as conf:
 
 with open('{}/src/lang.yaml'.format(ROOT_PATH),'r', encoding='utf8') as lang:
     langlist = yaml.load(lang)
+
+updrequests = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+udpconfig = (configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
+
+
 
 TTSChoice=''
 if configuration['TextToSpeech']['Choice']=="Google Cloud":
@@ -232,10 +235,8 @@ translanguage=language.split('-')[0]
 gender=''
 if configuration['TextToSpeech']['Voice_Gender']=='Male' and translanguage=='en':
     gender='Male'
-elif translanguage=='it':
-    gender='Male'
 elif configuration['TextToSpeech']['Voice_Gender']=='Male' and translanguage!='en':
-    gender='Female'
+    gender='Male'
 else:
     gender='Female'
 
@@ -1734,35 +1735,40 @@ def UPD_control(query,index):
   # Rollo -> alza, abbassa, chiudi, apri
 
    
-          if 'dimmer' in configuration['UDP_PLC_Control']['Id'][index].lower():
-            if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
-                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint, 100" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
-                say('Turning on ' + configuration['UDP_PLC_Control']['Name'][index])
-            if custom_action_keyword['Dict']['Off'] in query:
-                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint, 0" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
-                say('Turning off ' + configuration['UDP_PLC_Control']['Name'][index] ) 
-          else:
-            if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
-                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", bool, True" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
-                say('Turning on ' + configuration['UDP_PLC_Control']['Name'][index] )
-            if custom_action_keyword['Dict']['Off'] in query:
-                updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", bool, Flase" , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
-                say('Turning off ' + configuration['UDP_PLC_Control']['Name'][index] )
+        if custom_action_keyword['Dict']['Brightness'] in query:
+           if 'dimmer' in configuration['UDP_PLC_Control']['Devices']['Id'][index].lower():
+              if 'hundred' in query or 'hundred'.lower() in query or custom_action_keyword['Dict']['Maximum'] in query:
+                  bright=str(100)
+              elif 'zero' in query or custom_action_keyword['Dict']['Minimum'] in query:
+                  bright=str(0)
+              else:
+                  bright=re.findall('\d+', query)
+                  bright=bright[0]
+              temp = bytes("PLCWrite," + configuration['UDP_PLC_Control']['Devices']['Id'][index] + ", uint," + str(bright),"utf-8")
+              updrequests.sendto(temp , udpconfig)
+              # say('Setting ' + configuration['UDP_PLC_Control']['Devices']['Name'][index] + ' brightness to ' + str(bright) + ' percent.')
+           else:
+              say('I can not change the brightness of' + configuration['UDP_PLC_Control']['Devices']['Name'][index])
+        else:
+            if 'dimmer' in configuration['UDP_PLC_Control']['Devices']['Id'][index].lower():
+                if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
+                    temp = bytes("PLCWrite," + configuration['UDP_PLC_Control']['Devices']['Id'][index] + ", uint, 100","utf-8")
+                    updrequests.sendto(temp , udpconfig)
+                #    say('Turning on ' + configuration['UDP_PLC_Control']['Devices']['Name'][index])
+                if custom_action_keyword['Dict']['Off'] in query:
+                    temp = bytes("PLCWrite," + configuration['UDP_PLC_Control']['Devices']['Id'][index] + ", uint, 0","utf-8")
+                    updrequests.sendto(temp , udpconfig)
+               #     say('Turning off ' + configuration['UDP_PLC_Control']['Devices']['Name'][index] ) 
+            else:
+                if (' ' + custom_action_keyword['Dict']['On'] + ' ') in query or (' ' + custom_action_keyword['Dict']['On']) in query or (custom_action_keyword['Dict']['On'] + ' ') in query:
+                    temp = bytes("PLCWrite," + configuration['UDP_PLC_Control']['Devices']['Id'][index] + ", bool, True","utf-8")
+                    updrequests.sendto(temp , udpconfig)
+             #    say('Turning on ' + configuration['UDP_PLC_Control']['Devices']['Name'][index] )
+                if custom_action_keyword['Dict']['Off'] in query:
+                    temp = bytes("PLCWrite," + configuration['UDP_PLC_Control']['Devices']['Id'][index] + ", bool, False","utf-8")
+                    updrequests.sendto(temp , udpconfig)
+                #    say('Turning off ' + configuration['UDP_PLC_Control']['Devices']['Name'][index] )
   
-          if custom_action_keyword['Dict']['Brightness'] in query:
-              if 'dimmer' in configuration['UDP_PLC_Control']['Id'][index].lower():
-                  if 'hundred' in query or 'hundred'.lower() in query or custom_action_keyword['Dict']['Maximum'] in query:
-                      bright=str(100)
-                  elif 'zero' in query or custom_action_keyword['Dict']['Minimum'] in query:
-                      bright=str(0)
-                  else:
-                      bright=re.findall('\d+', query)
-                      bright=bright[0]
-                  updrequests.sendto("PLCWrite," + configuration['UDP_PLC_Control']['Id'][index] + ", uint," + str(bright) , configuration['UDP_PLC_Control']['Server_IP'][0], configuration['UDP_PLC_Control']['Server_port'][0])
-                  say('Setting ' + configuration['UDP_PLC_Control']['Name'][index] + ' brightness to ' + str(bright) + ' percent.')
-
-
-
     except (requests.exceptions.ConnectionError,TypeError) as errors:
         if str(errors)=="'NoneType' object is not iterable":
             print("Type Error")
